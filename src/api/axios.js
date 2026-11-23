@@ -6,12 +6,14 @@ const api = axios.create({
   baseURL: apiBaseURL,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
+  timeout: 15000,
 });
 
 const refreshClient = axios.create({
   baseURL: apiBaseURL,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
+  timeout: 15000,
 });
 
 let accessToken = null;
@@ -58,8 +60,10 @@ api.interceptors.response.use(
     }
 
     if (originalRequest._retry) {
-      clearAccessToken();
-      window.dispatchEvent(new CustomEvent("notely:session-expired"));
+      if (error.response?.status === 401) {
+        clearAccessToken();
+        window.dispatchEvent(new CustomEvent("notely:session-expired"));
+      }
       return Promise.reject(error);
     }
 
@@ -70,8 +74,10 @@ api.interceptors.response.use(
       originalRequest.headers.Authorization = `Bearer ${token}`;
       return api(originalRequest);
     } catch (refreshError) {
-      clearAccessToken();
-      window.dispatchEvent(new CustomEvent("notely:session-expired"));
+      if (refreshError?.response?.status === 401) {
+        clearAccessToken();
+        window.dispatchEvent(new CustomEvent("notely:session-expired"));
+      }
       return Promise.reject(refreshError);
     }
   },

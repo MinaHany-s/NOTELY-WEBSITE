@@ -3,8 +3,10 @@ import { useAuth } from "../context/AuthContext.jsx";
 import LoadingScreen from "../components/common/LoadingScreen.jsx";
 
 export default function ProtectedRoute() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, status } = useAuth();
   const location = useLocation();
-  if (loading) return <LoadingScreen message="Checking your session..." />;
+  if (loading || status === "restoring" || status === "unknown") {
+    return <LoadingScreen message="Checking your session..." />;
+  }
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace state={{ from: location }} />;
 }

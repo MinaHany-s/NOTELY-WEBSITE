@@ -17,8 +17,10 @@ import { useAuth } from "../context/AuthContext.jsx";
 import LoadingScreen from "../components/common/LoadingScreen.jsx";
 
 function PublicOnly({ children }) {
-  const { isAuthenticated, loading } = useAuth();
-  if (loading) return <LoadingScreen message="Checking your session..." />;
+  const { isAuthenticated, loading, status } = useAuth();
+  if (loading || status === "restoring" || status === "unknown") {
+    return <LoadingScreen message="Checking your session..." />;
+  }
   return isAuthenticated ? <Navigate to="/" replace /> : children;
 }
 

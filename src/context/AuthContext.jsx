@@ -9,6 +9,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("restoring");
 
   const loadUser = useCallback(async () => {
     const response = await getCurrentUser();
@@ -20,7 +21,9 @@ export function AuthProvider({ children }) {
 
   const signIn = useCallback(async (credentials) => {
     await authApi.login(credentials);
-    return loadUser();
+    const currentUser = await loadUser();
+    setStatus("authenticated");
+    return currentUser;
   }, [loadUser]);
 
   const signOut = useCallback(async () => {
@@ -29,14 +32,17 @@ export function AuthProvider({ children }) {
     } catch (error) {
       clearAccessToken();
       setUser(null);
+      setStatus("unauthenticated");
       throw new Error(getErrorMessage(error, "Unable to complete sign out."));
     }
     setUser(null);
+    setStatus("unauthenticated");
   }, []);
 
   const refreshUser = useCallback(async () => {
     const response = await getCurrentUser();
     setUser(response.data);
+    setStatus("authenticated");
     return response.data;
   }, []);
 
@@ -45,23 +51,46 @@ export function AuthProvider({ children }) {
     const onExpired = () => {
       setUser(null);
       clearAccessToken();
+      setStatus("unauthenticated");
     };
     window.addEventListener("notely:session-expired", onExpired);
 
     (async () => {
-      try {
-        await refreshAccessToken();
-        if (!active) return;
-        const response = await getCurrentUser();
-        const currentUser = response?.data;
-        if (!currentUser) throw new Error("The current-user response did not include user data.");
-        if (active) setUser(currentUser);
-      } catch {
-        clearAccessToken();
-        if (active) setUser(null);
-      } finally {
-        if (active) setLoading(false);
+      let restored = false;
+      let lastRefreshError = null;
+
+      for (let attempt = 0; attempt < 3 && active; attempt += 1) {
+        try {
+          await refreshAccessToken();
+          const response = await getCurrentUser();
+          const currentUser = response?.data;
+          if (!currentUser) throw new Error("The current-user response did not include user data.");
+          if (active) {
+            setUser(currentUser);
+            setStatus("authenticated");
+          }
+          restored = true;
+          break;
+        } catch (error) {
+          lastRefreshError = error;
+          const statusCode = error?.response?.status;
+          if (statusCode === 401) break;
+          if (statusCode && statusCode !== 408 && statusCode !== 429 && statusCode >= 400) break;
+          if (attempt < 2) await new Promise((resolve) => window.setTimeout(resolve, 300 * (attempt + 1)));
+        }
       }
+
+      if (!restored && active) {
+        const statusCode = lastRefreshError?.response?.status;
+        if (statusCode === 401) {
+          clearAccessToken();
+          setUser(null);
+          setStatus("unauthenticated");
+        } else {
+          setStatus("unknown");
+        }
+      }
+      if (active) setLoading(false);
     })();
 
     return () => {
@@ -73,6 +102,7 @@ export function AuthProvider({ children }) {
   const value = useMemo(() => ({
     user,
     loading,
+    status,
     isAuthenticated: Boolean(user),
     isAdmin: user?.role === "admin",
     signIn,
