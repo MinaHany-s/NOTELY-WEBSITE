@@ -23,6 +23,7 @@ const arabic = {
   "Open menu": "فتح القائمة",
   "Search notes": "البحث في الملاحظات",
   "Search notes...": "ابحث في الملاحظات...",
+  "Close search": "إغلاق البحث",
   "Switch to Arabic": "التبديل إلى العربية",
   "Switch to English": "التبديل إلى الإنجليزية",
   "in progress": "قيد التنفيذ",

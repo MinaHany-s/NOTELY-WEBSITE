@@ -38,6 +38,7 @@ export default function AppLayout() {
   const { t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [dark, setDark] = useState(() => localStorage.getItem("notely-theme") === "dark");
   const [loggingOut, setLoggingOut] = useState(false);
   const searchInput = useRef(null);
@@ -59,10 +60,15 @@ export default function AppLayout() {
 
   useEffect(() => {
     function handleShortcut(event) {
-      if (event.key === "Escape") setSidebarOpen(false);
+      if (event.key === "Escape") {
+        setSidebarOpen(false);
+        setMobileSearchOpen(false);
+        searchInput.current?.blur();
+      }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        searchInput.current?.focus();
+        if (window.matchMedia("(max-width: 820px)").matches) setMobileSearchOpen(true);
+        window.requestAnimationFrame(() => searchInput.current?.focus());
       }
     }
     window.addEventListener("keydown", handleShortcut);
@@ -79,6 +85,8 @@ export default function AppLayout() {
   function submitSearch(event) {
     event.preventDefault();
     const query = search.trim();
+    setMobileSearchOpen(false);
+    searchInput.current?.blur();
     navigate(query ? `/notes?search=${encodeURIComponent(query)}` : "/notes");
     setSidebarOpen(false);
   }
@@ -144,13 +152,39 @@ export default function AppLayout() {
       </aside>
 
       <div className="main-column">
-        <header className="topbar">
+        <header className={`topbar ${mobileSearchOpen ? "mobile-search-open" : ""}`}>
           <button className="icon-button mobile-menu" aria-label={t("Open menu")} aria-controls="primary-navigation" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(true)}><Menu size={20} /></button>
           <div className="breadcrumb"><span>{t("Workspace")}</span><span className="breadcrumb-slash">/</span><strong>{t(activeSection)}</strong></div>
           <div className="topbar-actions">
             <form className="search-field" onSubmit={submitSearch}>
-              <Search size={16} />
-              <input ref={searchInput} aria-label={t("Search notes")} placeholder={t("Search notes...")} value={search} onChange={(event) => setSearch(event.target.value)} />
+              <button
+                type="button"
+                className="search-toggle"
+                aria-label={t("Search notes")}
+                aria-controls="notes-search-input"
+                aria-expanded={mobileSearchOpen}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={(event) => {
+                  event.preventDefault();
+                  if (window.matchMedia("(max-width: 820px)").matches) setMobileSearchOpen(true);
+                  window.requestAnimationFrame(() => searchInput.current?.focus());
+                }}
+              >
+                <Search size={16} aria-hidden="true" />
+              </button>
+              <input id="notes-search-input" ref={searchInput} aria-label={t("Search notes")} placeholder={t("Search notes...")} value={search} onChange={(event) => setSearch(event.target.value)} />
+              <button
+                type="button"
+                className="search-close"
+                aria-label={t("Close search")}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  setMobileSearchOpen(false);
+                  searchInput.current?.blur();
+                }}
+              >
+                <X size={17} aria-hidden="true" />
+              </button>
               <kbd>⌘ K</kbd>
             </form>
             <button className="icon-button theme-toggle" aria-label={t(dark ? "Switch to light mode" : "Switch to dark mode")} onClick={toggleTheme}>{dark ? <Sun size={18} /> : <Moon size={18} />}</button>
