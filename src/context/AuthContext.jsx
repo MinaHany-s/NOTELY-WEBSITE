@@ -55,11 +55,11 @@ export function AuthProvider({ children }) {
     };
     window.addEventListener("notely:session-expired", onExpired);
 
-    (async () => {
+    const restoreSession = async () => {
       let restored = false;
       let lastRefreshError = null;
 
-      for (let attempt = 0; attempt < 3 && active; attempt += 1) {
+      for (let attempt = 0; attempt < 2 && active; attempt += 1) {
         try {
           await refreshAccessToken();
           const response = await getCurrentUser();
@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
           const statusCode = error?.response?.status;
           if (statusCode === 401) break;
           if (statusCode && statusCode !== 408 && statusCode !== 429 && statusCode >= 400) break;
-          if (attempt < 2) await new Promise((resolve) => window.setTimeout(resolve, 300 * (attempt + 1)));
+          if (attempt < 1) await new Promise((resolve) => window.setTimeout(resolve, 300));
         }
       }
 
@@ -90,7 +90,16 @@ export function AuthProvider({ children }) {
           setStatus("unknown");
         }
       }
-      if (active) setLoading(false);
+    };
+
+    void (async () => {
+      try {
+        await restoreSession();
+      } catch {
+        if (active) setStatus("unknown");
+      } finally {
+        if (active) setLoading(false);
+      }
     })();
 
     return () => {

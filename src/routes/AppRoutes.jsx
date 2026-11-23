@@ -18,7 +18,7 @@ import LoadingScreen from "../components/common/LoadingScreen.jsx";
 
 function PublicOnly({ children }) {
   const { isAuthenticated, loading, status } = useAuth();
-  if (loading || status === "restoring" || status === "unknown") {
+  if (loading || status === "restoring") {
     return <LoadingScreen message="Checking your session..." />;
   }
   return isAuthenticated ? <Navigate to="/" replace /> : children;

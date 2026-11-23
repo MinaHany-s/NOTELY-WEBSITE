@@ -5,7 +5,7 @@ import LoadingScreen from "../components/common/LoadingScreen.jsx";
 export default function ProtectedRoute() {
   const { isAuthenticated, loading, status } = useAuth();
   const location = useLocation();
-  if (loading || status === "restoring" || status === "unknown") {
+  if (loading || status === "restoring") {
     return <LoadingScreen message="Checking your session..." />;
   }
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace state={{ from: location }} />;
