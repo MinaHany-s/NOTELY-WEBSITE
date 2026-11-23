@@ -1,4 +1,5 @@
 import ButtonLoader from "./ButtonLoader.jsx";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function Button({
   children,
@@ -11,6 +12,8 @@ export default function Button({
   loadingLabel = "Loading...",
   ...props
 }) {
+  const { t } = useLanguage();
+
   return (
     <button
       className={`button button-${variant} button-${size} ${loading ? "button-is-loading" : ""} ${className}`}
@@ -20,7 +23,7 @@ export default function Button({
       {...props}
     >
       {loading && <ButtonLoader />}
-      <span className="button-label">{loading ? loadingLabel : children}</span>
+      <span className="button-label">{loading ? t(loadingLabel) : children}</span>
     </button>
   );
 }

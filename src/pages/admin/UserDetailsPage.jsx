@@ -3,15 +3,17 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight, FileText, Shield, UserRound } from "lucide-react";
 import toast from "react-hot-toast";
 import { getUserById } from "../../api/users.api.js";
-import { formatDate, getInitials } from "../../utils/format.js";
+import { formatDate, formatNumber, getInitials } from "../../utils/format.js";
 import { getErrorMessage } from "../../utils/errors.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import EmptyState from "../../components/common/EmptyState.jsx";
 import LoadingScreen from "../../components/common/LoadingScreen.jsx";
 import SectionLoader from "../../components/common/SectionLoader.jsx";
 import Button from "../../components/common/Button.jsx";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function UserDetailsPage() {
+  const { t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const [result, setResult] = useState(null);
@@ -29,7 +31,7 @@ export default function UserDetailsPage() {
       .catch((error) => {
         if (active) {
           setLoadError(error);
-          toast.error(getErrorMessage(error, "Could not load this member."));
+          toast.error(getErrorMessage(error, t("Could not load this member.")));
         }
       })
       .finally(() => {
@@ -42,21 +44,21 @@ export default function UserDetailsPage() {
   }, [id, notesPage, retry]);
 
   if (loading && !result) return <LoadingScreen message="Loading member details..." />;
-  if (!result?.user) return <div className="page-wrap"><EmptyState title="Member unavailable" description={getErrorMessage(loadError, "This account may have been removed.")} action={<Button onClick={() => setRetry((current) => current + 1)}>Retry</Button>} /></div>;
+  if (!result?.user) return <div className="page-wrap"><EmptyState title="Member unavailable" description={getErrorMessage(loadError, "This account may have been removed.")} action={<Button onClick={() => setRetry((current) => current + 1)}>{t("Retry")}</Button>} /></div>;
   const { user, notes } = result;
 
   return (
     <div className="page-wrap">
-      <button className="back-link" onClick={() => navigate("/admin/users")}><ArrowLeft size={16} /> Back to users</button>
+      <button className="back-link" onClick={() => navigate("/admin/users")}><ArrowLeft size={16} /> {t("Back to users")}</button>
       <PageHeader eyebrow="MEMBER DETAILS" title={`${user.firstName} ${user.lastName}`} description="Account information and recent notes." />
-      <section className="member-profile-card"><span className="avatar avatar-large">{getInitials(user) || <UserRound size={23} />}</span><div className="member-profile-copy"><h2>{user.firstName} {user.lastName}</h2><p className="muted">{user.email}</p><div className="member-profile-meta"><span className={`role-badge ${user.role === "admin" ? "role-admin" : ""}`}>{user.role === "admin" && <Shield size={12} />}{user.role}</span><span>Joined {formatDate(user.createdAt)}</span></div></div><div className="member-notes-count"><FileText size={17} /><strong>{notes.totalNotes}</strong><span>notes</span></div></section>
-      <div className="section-heading"><div><h2>Recent notes</h2><p className="muted">Notes owned by this member. Content is visible to administrators.</p></div></div>
-      {loadError && <div className="inline-error"><span>Member data could not be refreshed.</span><Button variant="secondary" onClick={() => setRetry((current) => current + 1)} loading={notesLoading} loadingLabel="Loading notes...">Retry</Button></div>}
+      <section className="member-profile-card"><span className="avatar avatar-large">{getInitials(user) || <UserRound size={23} />}</span><div className="member-profile-copy"><h2 dir="auto">{user.firstName} {user.lastName}</h2><p className="muted" dir="ltr">{user.email}</p><div className="member-profile-meta"><span className={`role-badge ${user.role === "admin" ? "role-admin" : ""}`}>{user.role === "admin" && <Shield size={12} />}{t(user.role === "admin" ? "Administrator" : "User")}</span><span>{t("Joined {date}", { date: formatDate(user.createdAt) })}</span></div></div><div className="member-notes-count"><FileText size={17} /><strong>{formatNumber(notes.totalNotes)}</strong><span>{t("notes")}</span></div></section>
+      <div className="section-heading"><div><h2>{t("Recent notes")}</h2><p className="muted">{t("Notes owned by this member. Content is visible to administrators.")}</p></div></div>
+      {loadError && <div className="inline-error"><span>{t("Member data could not be refreshed.")}</span><Button variant="secondary" onClick={() => setRetry((current) => current + 1)} loading={notesLoading} loadingLabel="Loading notes...">{t("Retry")}</Button></div>}
       {notesLoading ? <SectionLoader message="Loading this member’s notes..." /> : notes.items?.length ? <div className="admin-notes-list">
-        {notes.items.map((note) => <article className="admin-note-row" key={note._id}><span className="note-row-icon"><FileText size={17} /></span><div><h3>{note.title}</h3><p>{note.content || "No additional details."}</p></div><time>{formatDate(note.updatedAt)}</time></article>)}
-        {notes.totalPages > 1 && <div className="table-pagination"><span>Page {notes.page} of {notes.totalPages} · {notes.totalNotes} notes</span><div><button className="icon-button" aria-label="Previous notes page" disabled={notesLoading || notes.page <= 1} onClick={() => setNotesPage(notesPage - 1)}><ChevronLeft size={17} /></button><button className="icon-button" aria-label="Next notes page" disabled={notesLoading || notes.page >= notes.totalPages} onClick={() => setNotesPage(notesPage + 1)}><ChevronRight size={17} /></button></div></div>}
+        {notes.items.map((note) => <article className="admin-note-row" key={note._id}><span className="note-row-icon"><FileText size={17} /></span><div><h3 dir="auto">{note.title}</h3><p dir="auto">{note.content || t("No additional details.")}</p></div><time>{formatDate(note.updatedAt)}</time></article>)}
+        {notes.totalPages > 1 && <div className="table-pagination"><span>{t("Page {page} of {total}", { page: notes.page, total: notes.totalPages })} · {t("{count} notes", { count: notes.totalNotes })}</span><div><button className="icon-button" aria-label={t("Previous notes page")} disabled={notesLoading || notes.page <= 1} onClick={() => setNotesPage(notesPage - 1)}><ChevronLeft size={17} /></button><button className="icon-button" aria-label={t("Next notes page")} disabled={notesLoading || notes.page >= notes.totalPages} onClick={() => setNotesPage(notesPage + 1)}><ChevronRight size={17} /></button></div></div>}
       </div> : <EmptyState title="No notes yet" description="This member hasn’t created any notes." />}
-      <p className="pagination-note">Showing {notes.items?.length || 0} of {notes.totalNotes} notes.</p>
+      <p className="pagination-note">{t("Showing {shown} of {total} notes.", { shown: notes.items?.length || 0, total: notes.totalNotes })}</p>
     </div>
   );
 }

@@ -2,7 +2,16 @@ export function formatDate(date, options = { month: "short", day: "numeric", yea
   if (!date) return "";
   const parsed = new Date(date);
   if (Number.isNaN(parsed.getTime())) return "";
-  return new Intl.DateTimeFormat(undefined, options).format(parsed);
+  const locale = document.documentElement.lang === "ar" ? "ar-EG" : undefined;
+  return new Intl.DateTimeFormat(locale, options).format(parsed);
+}
+
+export function formatNumber(value) {
+  if (value === null || value === undefined || value === "") return value;
+  const number = Number(value);
+  if (!Number.isFinite(number)) return value;
+  const locale = document.documentElement.lang === "ar" ? "ar-EG" : undefined;
+  return new Intl.NumberFormat(locale).format(number);
 }
 
 export function getInitials(user) {

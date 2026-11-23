@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useNotes } from "../context/NotesContext.jsx";
 import { getErrorMessage } from "../utils/errors.js";
+import { translateCurrent } from "../i18n/translations.js";
 
 export default function useNoteMutation() {
   const { refresh } = useNotes();
@@ -16,7 +17,7 @@ export default function useNoteMutation() {
 
     try {
       await action(id);
-      toast.success(successMessage);
+      toast.success(translateCurrent(successMessage));
     } catch (error) {
       toast.error(getErrorMessage(error, "Could not update this note."));
       pendingRef.current.delete(id);

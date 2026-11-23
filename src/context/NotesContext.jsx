@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { getNotes, getNotesStats } from "../api/notes.api.js";
 import { useAuth } from "./AuthContext.jsx";
 import { getErrorMessage } from "../utils/errors.js";
+import { translateCurrent } from "../i18n/translations.js";
 
 const NotesContext = createContext(null);
 
@@ -37,7 +38,7 @@ export function NotesProvider({ children }) {
         trashed: trashedResponse.data || [],
       });
       setStats(statsResponse.data);
-      if (notify) toast.success("Notes updated");
+      if (notify) toast.success(translateCurrent("Notes updated"));
     } catch (error) {
       setError(error);
       toast.error(getErrorMessage(error, "Could not load your notes."));

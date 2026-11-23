@@ -11,16 +11,18 @@ import NotesSkeleton from "../../components/common/NotesSkeleton.jsx";
 import EmptyState from "../../components/common/EmptyState.jsx";
 import Button from "../../components/common/Button.jsx";
 import Modal from "../../components/common/Modal.jsx";
-import { Archive, FileText, Pin, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 const viewConfig = {
-  all: { title: "All notes", description: "A home for every idea, list, and little reminder.", icon: FileText, emptyTitle: "Nothing here just yet", emptyDescription: "Start with a note, and let the ideas follow." },
-  pinned: { title: "Pinned notes", description: "The thoughts you want to keep within reach.", icon: Pin, emptyTitle: "No pinned notes", emptyDescription: "Pin a note to keep it close at hand." },
-  archived: { title: "Archive", description: "A quiet place for notes you may want later.", icon: Archive, emptyTitle: "Your archive is empty", emptyDescription: "Archived notes will be waiting here when you need them." },
-  trash: { title: "Trash", description: "Notes here are permanently deleted after seven days.", icon: Trash2, emptyTitle: "Trash is empty", emptyDescription: "Nothing to clear. It’s a good feeling." },
+  all: { title: "All notes", eyebrow: "All notes", description: "A home for every idea, list, and little reminder.", emptyTitle: "Nothing here just yet", emptyDescription: "Start with a note, and let the ideas follow." },
+  pinned: { title: "Pinned notes", eyebrow: "Pinned notes", description: "The thoughts you want to keep within reach.", emptyTitle: "No pinned notes", emptyDescription: "Pin a note to keep it close at hand." },
+  archived: { title: "Archive", eyebrow: "Archive", description: "A quiet place for notes you may want later.", emptyTitle: "Your archive is empty", emptyDescription: "Archived notes will be waiting here when you need them." },
+  trash: { title: "Trash", eyebrow: "Trash", description: "Notes here are permanently deleted after seven days.", emptyTitle: "Trash is empty", emptyDescription: "Nothing to clear. It’s a good feeling." },
 };
 
 export default function NotesPage({ view }) {
+  const { t } = useLanguage();
   const { notes, loading: contextLoading, error: contextError, refresh } = useNotes();
   const { run: mutate, pendingActions } = useNoteMutation();
   const [params] = useSearchParams();
@@ -71,10 +73,10 @@ export default function NotesPage({ view }) {
     setDeleting(true);
     try {
       await permanentlyDeleteNote(pendingDelete._id);
-      toast.success("Note permanently deleted");
+      toast.success(t("Note permanently deleted"));
       setPendingDelete(null);
     } catch (error) {
-      toast.error(getErrorMessage(error, "Could not permanently delete this note."));
+      toast.error(getErrorMessage(error, t("Could not permanently delete this note.")));
       return;
     } finally {
       setDeleting(false);
@@ -84,10 +86,10 @@ export default function NotesPage({ view }) {
 
   return (
     <div className="page-wrap">
-      <PageHeader eyebrow={`${config.icon && view.toUpperCase()}${search ? " · SEARCH" : ""}`} title={search ? `Search results` : config.title} description={search ? `Showing matches for “${search}”.` : config.description} action={view === "all" && <Button onClick={() => navigate("/notes/new")}><Plus size={16} /> New note</Button>} />
-      {search && <div className="search-result-bar"><span>{isLoading ? "Searching your notes..." : `${visibleNotes.length} matching ${visibleNotes.length === 1 ? "note" : "notes"}`}</span><button className="text-button" onClick={() => navigate("/notes")}>Clear search</button></div>}
-      {!search && contextError && <div className="inline-error"><span>Your notes could not be refreshed.</span><Button variant="secondary" onClick={() => refresh().catch(() => {})} loading={contextLoading} loadingLabel="Refreshing...">Retry</Button></div>}
-      {searchError && <div className="inline-error"><span>Search couldn’t be completed.</span><Button variant="secondary" onClick={() => setSearchRetry((count) => count + 1)} loading={remoteLoading} loadingLabel="Searching...">Retry search</Button></div>}
+      <PageHeader eyebrow={`${t(config.eyebrow)}${search ? ` · ${t("SEARCH")}` : ""}`} title={search ? "Search results" : config.title} description={search ? t("Showing matches for “{search}”.", { search }) : config.description} action={view === "all" && <Button onClick={() => navigate("/notes/new")}><Plus size={16} /> {t("New note")}</Button>} />
+      {search && <div className="search-result-bar"><span>{isLoading ? t("Searching your notes...") : t(visibleNotes.length === 1 ? "{count} matching note" : "{count} matching notes", { count: visibleNotes.length })}</span><button className="text-button" onClick={() => navigate("/notes")}>{t("Clear search")}</button></div>}
+      {!search && contextError && <div className="inline-error"><span>{t("Your notes could not be refreshed.")}</span><Button variant="secondary" onClick={() => refresh().catch(() => {})} loading={contextLoading} loadingLabel="Refreshing...">{t("Retry")}</Button></div>}
+      {searchError && <div className="inline-error"><span>{t("Search couldn’t be completed.")}</span><Button variant="secondary" onClick={() => setSearchRetry((count) => count + 1)} loading={remoteLoading} loadingLabel="Searching...">{t("Retry search")}</Button></div>}
       {isLoading ? <NotesSkeleton count={6} /> :
         contextError && !search && !visibleNotes.length ? null :
         searchError ? null :
@@ -111,7 +113,7 @@ export default function NotesPage({ view }) {
           <EmptyState
             title={search ? "No matching notes" : config.emptyTitle}
             description={search ? "Try a different title or phrase." : config.emptyDescription}
-            action={view === "all" && !search ? <Button onClick={() => navigate("/notes/new")}><Plus size={16} /> Create your first note</Button> : undefined}
+            action={view === "all" && !search ? <Button onClick={() => navigate("/notes/new")}><Plus size={16} /> {t("Create your first note")}</Button> : undefined}
           />
         )}
       <Modal open={Boolean(pendingDelete)} title="Delete this note forever?" description="This action can’t be undone. The note will be permanently removed from your account." onClose={() => !deleting && setPendingDelete(null)} onConfirm={confirmPermanentDelete} confirmLabel="Delete permanently" danger busy={deleting} busyLabel="Deleting..." />

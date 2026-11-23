@@ -5,8 +5,10 @@ import StatCard from "../../components/notes/StatCard.jsx";
 import SkeletonCard from "../../components/common/SkeletonCard.jsx";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/common/Button.jsx";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function StatisticsPage() {
+  const { t } = useLanguage();
   const { stats, loading, error, refresh } = useNotes();
   const navigate = useNavigate();
   const entries = [
@@ -18,11 +20,11 @@ export default function StatisticsPage() {
   return (
     <div className="page-wrap">
       <PageHeader eyebrow="YOUR ACTIVITY" title="Notes statistics" description="A simple overview of what you’ve collected." />
-      {error && <div className="inline-error"><span>Statistics could not be refreshed.</span><Button variant="secondary" onClick={() => refresh().catch(() => {})} loading={loading} loadingLabel="Refreshing...">Retry</Button></div>}
+      {error && <div className="inline-error"><span>{t("Statistics could not be refreshed.")}</span><Button variant="secondary" onClick={() => refresh().catch(() => {})} loading={loading} loadingLabel="Refreshing...">{t("Retry")}</Button></div>}
       {loading && !stats ? <div className="stats-grid stat-grid-large">{[1, 2, 3, 4].map((item) => <SkeletonCard key={item} />)}</div> : stats && (
         <>
           <div className="stats-grid stat-grid-large">{entries.map((entry) => <StatCard {...entry} key={entry.key} onClick={() => navigate(entry.to)} value={stats?.[entry.key]} caption="View notes" />)}</div>
-          <section className="insight-panel"><div className="insight-icon"><FileText size={19} /></div><div><h3>Your collection</h3><p className="muted">You have <strong>{stats?.totalNotes ?? 0}</strong> notes in total. Keep collecting the ideas worth remembering.</p></div></section>
+          <section className="insight-panel"><div className="insight-icon"><FileText size={19} /></div><div><h3>{t("Your collection")}</h3><p className="muted">{t("You have {count} notes in total. Keep collecting the ideas worth remembering.", { count: stats?.totalNotes ?? 0 })}</p></div></section>
         </>
       )}
     </div>
