@@ -80,7 +80,9 @@ Create a `.env` file in the project root:
 VITE_API_URL=http://localhost:5000
 ```
 
-Make sure the backend server is running and the API URL matches your backend configuration.
+Use `VITE_API_URL` for local development to point to the backend. Production builds use
+same-origin `/api/v1` requests, which Vercel rewrites to the backend so browsers treat
+authentication cookies as first-party.
 
 ### 4. Start the Development Server
 
