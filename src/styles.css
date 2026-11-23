@@ -471,11 +471,7 @@ html[dir="rtl"] textarea {
   background: var(--surface-soft);
 }
 
-.sidebar-language {
-  width: 100%;
-  justify-content: flex-start;
-  padding-inline: 11px;
-}
+.topbar-language { flex: 0 0 auto; }
 
 .auth-topline {
   width: min(100%, 460px);

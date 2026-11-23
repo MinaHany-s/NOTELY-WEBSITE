@@ -134,7 +134,6 @@ export default function AppLayout() {
 
         <div className="sidebar-spacer" />
         <div className="sidebar-bottom">
-          <LanguageSwitcher className="sidebar-language" />
           <NavLink to="/settings" onClick={() => setSidebarOpen(false)} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}><Settings size={17} /><span>{t("Settings")}</span></NavLink>
           <div className="sidebar-user">
             <span className="avatar">{getInitials(user) || "N"}</span>
@@ -156,6 +155,7 @@ export default function AppLayout() {
             </form>
             <button className="icon-button theme-toggle" aria-label={t(dark ? "Switch to light mode" : "Switch to dark mode")} onClick={toggleTheme}>{dark ? <Sun size={18} /> : <Moon size={18} />}</button>
             <Button size="sm" onClick={() => navigate("/notes/new")}><Plus size={16} /> {t("New note")}</Button>
+            <LanguageSwitcher className="topbar-language" />
           </div>
         </header>
         <main className="main-content"><Outlet /></main>
