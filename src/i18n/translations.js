@@ -77,6 +77,8 @@ const arabic = {
   "CAPTCHA verification image": "صورة رمز التحقق",
   "Loading CAPTCHA...": "جارٍ تحميل رمز التحقق...",
   "Unable to load the CAPTCHA. Please try again.": "تعذر تحميل رمز التحقق. حاول مرة أخرى.",
+  "Unable to reach the CAPTCHA service. Check your connection and try again.": "تعذر الاتصال بخدمة رمز التحقق. تحقق من اتصالك وحاول مرة أخرى.",
+  "CAPTCHA service returned HTTP {status}. Try again later.": "أعادت خدمة رمز التحقق خطأ HTTP {status}. حاول مرة أخرى لاحقًا.",
   "Refresh CAPTCHA": "تحديث رمز التحقق",
   "Refresh": "تحديث",
   "CAPTCHA expired. Refresh and try again.": "انتهت صلاحية رمز التحقق. حدّثه وحاول مرة أخرى.",

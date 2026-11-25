@@ -7,12 +7,12 @@ export default function CaptchaChallenge({ value, onChange, refreshKey }) {
   const { t } = useLanguage();
   const [svg, setSvg] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const lastRefreshKey = useRef();
 
   const loadCaptcha = useCallback(async () => {
     setLoading(true);
-    setLoadError(false);
+    setLoadError("");
     setSvg("");
     onChange("");
 
@@ -22,12 +22,17 @@ export default function CaptchaChallenge({ value, onChange, refreshKey }) {
         throw new Error("The CAPTCHA response did not contain an SVG image.");
       }
       setSvg(response);
-    } catch {
-      setLoadError(true);
+    } catch (error) {
+      const status = error?.response?.status;
+      setLoadError(
+        status
+          ? t("CAPTCHA service returned HTTP {status}. Try again later.", { status })
+          : t("Unable to reach the CAPTCHA service. Check your connection and try again.")
+      );
     } finally {
       setLoading(false);
     }
-  }, [onChange]);
+  }, [onChange, t]);
 
   useEffect(() => {
     if (lastRefreshKey.current === refreshKey) return;
@@ -46,9 +51,7 @@ export default function CaptchaChallenge({ value, onChange, refreshKey }) {
           />
         ) : (
           <span className="captcha-placeholder" aria-live="polite">
-            {loadError
-              ? t("Unable to load the CAPTCHA. Please try again.")
-              : t("Loading CAPTCHA...")}
+            {loadError || t("Loading CAPTCHA...")}
           </span>
         )}
         <button
