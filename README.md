@@ -15,6 +15,7 @@ NOTELY is a full-stack note-taking application that helps users create, manage, 
 
 ### Authentication
 - User registration and login.
+- CAPTCHA verification during registration and login.
 - Persistent authentication using access and refresh tokens.
 - Automatic token refresh when the access token expires.
 - Secure logout.

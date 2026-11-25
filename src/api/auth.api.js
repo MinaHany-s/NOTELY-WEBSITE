@@ -1,5 +1,9 @@
 import api, { clearAccessToken, refreshAccessToken, setAccessToken } from "./axios.js";
 
+export async function fetchCaptcha() {
+  return (await api.get("/auth/captcha", { responseType: "text" })).data;
+}
+
 export async function register(payload) {
   return (await api.post("/auth/register", payload)).data;
 }

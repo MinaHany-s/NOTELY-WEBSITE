@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { register } from "../../api/auth.api.js";
 import { getErrorMessage } from "../../utils/errors.js";
 import Button from "../../components/common/Button.jsx";
+import CaptchaChallenge from "../../components/auth/CaptchaChallenge.jsx";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher.jsx";
 import { useLanguage } from "../../context/LanguageContext.jsx";
 
@@ -13,19 +14,24 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "" });
+  const [captcha, setCaptcha] = useState("");
+  const [captchaRefreshKey, setCaptchaRefreshKey] = useState(0);
   const navigate = useNavigate();
 
   async function submit(event) {
     event.preventDefault();
     if (Object.values(form).some((value) => !value.trim())) return toast.error(t("Complete every field to continue."));
+    if (!captcha.trim()) return toast.error(t("Enter the CAPTCHA text."));
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return toast.error(t("Enter a valid email address."));
     if (form.password.length < 8) return toast.error(t("Password must be at least 8 characters."));
     setBusy(true);
     try {
-      await register({ ...form, email: form.email.trim() });
+      await register({ ...form, email: form.email.trim(), captcha });
       toast.success(t("Account created. Sign in to get started."));
       navigate("/login");
     } catch (error) {
+      setCaptcha("");
+      setCaptchaRefreshKey((key) => key + 1);
       toast.error(getErrorMessage(error, t("Unable to create your account.")));
     } finally {
       setBusy(false);
@@ -49,6 +55,7 @@ export default function RegisterPage() {
           </div>
           <label className="field-label">{t("Email address")}<span className="input-wrap"><Mail size={17} /><input type="email" autoComplete="email" dir="ltr" placeholder="you@example.com" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></span></label>
           <label className="field-label">{t("Password")}<span className="input-wrap"><LockKeyhole size={17} /><input type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder={t("At least 8 characters")} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /><button type="button" className="input-action" onClick={() => setShowPassword(!showPassword)} aria-label={t(showPassword ? "Hide password" : "Show password")}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></span></label>
+          <CaptchaChallenge value={captcha} onChange={setCaptcha} refreshKey={captchaRefreshKey} />
           <Button type="submit" className="auth-submit" size="lg" loading={busy} loadingLabel="Creating account...">{t("Create account")} <span>→</span></Button>
         </form>
         <p className="auth-switch">{t("Already have an account?")} <Link to="/login">{t("Sign in")}</Link></p>
